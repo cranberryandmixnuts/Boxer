@@ -196,6 +196,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DragInputController
   sorter: {fileID: 998186814}
   minTotalDistance: 40
+  templateTrust: 0
 --- !u!1 &81722095
 GameObject:
   m_ObjectHideFlags: 0

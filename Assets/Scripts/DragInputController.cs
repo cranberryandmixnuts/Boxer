@@ -10,14 +10,14 @@ public class DragInputController : MonoBehaviour
     [SerializeField]
     private float minTotalDistance = 40f;
 
-    private GestureDirectionRecognizer recognizer;
+    private AdvancedGestureRecognizer recognizer;
     private bool dragging;
     private float dragStartTime;
-    private readonly List<Vector2> points = new();
+    private readonly List<Vector2> points = new List<Vector2>();
 
     private void Awake()
     {
-        recognizer = new GestureDirectionRecognizer();
+        recognizer = new AdvancedGestureRecognizer();
     }
 
     private void Update()
@@ -46,9 +46,7 @@ public class DragInputController : MonoBehaviour
         if (!dragging)
             return;
 
-        Vector2 p = Input.mousePosition;
-        if (points.Count == 0 || Vector2.Distance(points[^1], p) > 2f)
-            points.Add(p);
+        points.Add(Input.mousePosition);
     }
 
     private void EndDrag()
@@ -68,23 +66,77 @@ public class DragInputController : MonoBehaviour
 
         float dragTime = Time.time - dragStartTime;
 
-        Direction8 dir = RecognizeDirection(points);
-        sorter.RouteCurrentBox(dir, dragTime);
+        List<GestureMatch> matches = recognizer.RecognizeAll(points);
+        Direction8 vecDir = ScreenDeltaToDirection(points[0], points[points.Count - 1]);
+
+        if (matches.Count == 0)
+            return;
+
+        for (int i = 0; i < matches.Count; i++)
+        {
+            float bonus = CalcVectorBonus(vecDir, matches[i].direction);
+            float s = matches[i].score + bonus;
+            if (s > 1f)
+                s = 1f;
+            matches[i] = new GestureMatch(matches[i].name, s, matches[i].direction);
+        }
+
+        matches.Sort((a, b) => b.score.CompareTo(a.score));
+
+        Direction8 finalDir = matches[0].direction;
+
+        string log = "Gesture top: ";
+        for (int i = 0; i < matches.Count && i < 3; i++)
+            log += (i + 1) + ") " + matches[i].name + " " + matches[i].score.ToString("F3") + "  ";
+        log += " | vec=" + vecDir + " final=" + finalDir;
+        Debug.Log(log);
+
+        sorter.RouteCurrentBox(finalDir, dragTime);
     }
 
-    private Direction8 RecognizeDirection(List<Vector2> pts)
+    private float CalcVectorBonus(Direction8 vecDir, Direction8 algoDir)
     {
-        Direction8 fromTemplate = recognizer.Recognize(pts);
-        Vector2 delta = pts[^1] - pts[0];
+        if (vecDir == algoDir)
+            return 0.1f;
+        if (AreAdjacent(vecDir, algoDir))
+            return 0.05f;
+        return 0f;
+    }
+
+    private bool AreAdjacent(Direction8 a, Direction8 b)
+    {
+        int ia = DirToIndex(a);
+        int ib = DirToIndex(b);
+        int diff = Mathf.Abs(ia - ib);
+        if (diff == 1)
+            return true;
+        if (diff == 7)
+            return true;
+        return false;
+    }
+
+    private int DirToIndex(Direction8 d)
+    {
+        switch (d)
+        {
+            case Direction8.East: return 0;
+            case Direction8.NorthEast: return 1;
+            case Direction8.North: return 2;
+            case Direction8.NorthWest: return 3;
+            case Direction8.West: return 4;
+            case Direction8.SouthWest: return 5;
+            case Direction8.South: return 6;
+            case Direction8.SouthEast: return 7;
+        }
+        return 0;
+    }
+
+    private Direction8 ScreenDeltaToDirection(Vector2 from, Vector2 to)
+    {
+        Vector2 delta = to - from;
         if (delta.sqrMagnitude < 0.0001f)
-            return fromTemplate;
+            return Direction8.East;
 
-        Direction8 fromVector = ScreenDeltaToDirection(delta);
-        return fromVector;
-    }
-
-    private Direction8 ScreenDeltaToDirection(Vector2 delta)
-    {
         float angle = Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg;
         if (angle < 0f)
             angle += 360f;
