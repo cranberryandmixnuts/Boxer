@@ -3,14 +3,11 @@ using DG.Tweening;
 
 public enum BoxState
 {
-    IdleInPool,
-    EntryWaiting,
-    EntrySliding,
-    EntryAdvancing,
+    InSlot,
+    MovingToTarget,
     AtSorter,
     MovingOnLane,
-    DroppingDown,
-    Despawning
+    Dropping
 }
 
 public class BoxController : MonoBehaviour
@@ -35,7 +32,8 @@ public class BoxController : MonoBehaviour
     private ConveyorLane currentLane;
     private SorterController sorter;
     private BoxPool ownerPool;
-    private Vector3 entryTargetPosition;
+    private Vector3 targetPosition;
+    private bool moveArrivesAtSorter;
     private Vector3 baseScale;
     private Tween entryTween;
     private Tween dropTween;
@@ -69,34 +67,34 @@ public class BoxController : MonoBehaviour
         KillTweens();
         payloadType = type;
         sorter = sorterRef;
-        state = BoxState.EntryWaiting;
+        currentLane = null;
         transform.SetPositionAndRotation(position, Quaternion.identity);
         if (visualRoot != null)
             visualRoot.localRotation = Quaternion.identity;
         ResetScale();
-        currentLane = null;
+        state = BoxState.InSlot;
     }
 
-    public void BeginAdvanceToSorter(Vector3 targetPosition)
+    public void BeginAdvanceToSorter(Vector3 sorterPos)
+    {
+        StartMoveTo(sorterPos, true);
+    }
+
+    public void MoveToEntrySlot(Vector3 slotPos)
+    {
+        StartMoveTo(slotPos, false);
+    }
+
+    private void StartMoveTo(Vector3 pos, bool arrivesAtSorter)
     {
         KillTweens();
-        entryTargetPosition = targetPosition;
-        state = BoxState.EntryAdvancing;
+        targetPosition = pos;
+        moveArrivesAtSorter = arrivesAtSorter;
         transform.rotation = Quaternion.identity;
         if (visualRoot != null)
             visualRoot.localRotation = Quaternion.identity;
-        PlayEntryHop(CalcSlotDuration(entryTargetPosition));
-    }
-
-    public void MoveToEntrySlot(Vector3 targetPosition)
-    {
-        KillTweens();
-        entryTargetPosition = targetPosition;
-        state = BoxState.EntrySliding;
-        transform.rotation = Quaternion.identity;
-        if (visualRoot != null)
-            visualRoot.localRotation = Quaternion.identity;
-        PlayEntryHop(CalcSlotDuration(entryTargetPosition));
+        PlayEntryHop(CalcSlotDuration(pos));
+        state = BoxState.MovingToTarget;
     }
 
     public void SpawnOnLane(ConveyorLane lane, BoxPayloadType type, SorterController sorterRef)
@@ -105,76 +103,44 @@ public class BoxController : MonoBehaviour
         payloadType = type;
         sorter = sorterRef;
         currentLane = lane;
-        state = BoxState.MovingOnLane;
         transform.SetPositionAndRotation(lane.StartPosition, Quaternion.LookRotation((lane.EndPosition - lane.StartPosition).normalized, Vector3.up));
         if (visualRoot != null)
             visualRoot.localRotation = Quaternion.identity;
+        state = BoxState.MovingOnLane;
     }
 
     private void Update()
     {
         switch (state)
         {
-            case BoxState.EntryAdvancing:
-                TickEntryAdvancing();
-                break;
-            case BoxState.EntrySliding:
-                TickEntrySliding();
+            case BoxState.MovingToTarget:
+                TickMoveToTarget();
                 break;
             case BoxState.MovingOnLane:
                 TickMovingOnLane();
                 break;
-            case BoxState.DroppingDown:
-                break;
-            case BoxState.Despawning:
-                DespawnNow();
+            case BoxState.Dropping:
                 break;
         }
     }
 
-    private void TickEntryAdvancing()
+    private void TickMoveToTarget()
     {
-        float duration = CalcSlotDuration(entryTargetPosition);
-        StepSlotMove(duration, true);
-    }
-
-    private void TickEntrySliding()
-    {
-        float duration = CalcSlotDuration(entryTargetPosition);
-        StepSlotMove(duration, false);
-    }
-
-    private void StepSlotMove(float duration, bool arriveSorter)
-    {
+        float duration = CalcSlotDuration(targetPosition);
         if (duration <= 0f)
         {
-            transform.position = entryTargetPosition;
-            if (arriveSorter)
-            {
-                state = BoxState.AtSorter;
-                if (sorter != null)
-                    sorter.OnBoxArrived(this);
-            }
-            else
-                state = BoxState.EntryWaiting;
+            FinishMoveToTarget();
             return;
         }
 
-        Vector3 dir = entryTargetPosition - transform.position;
+        Vector3 dir = targetPosition - transform.position;
         float dist = dir.magnitude;
         float step = (dist / duration) * Time.deltaTime;
 
         if (step >= dist)
         {
-            transform.position = entryTargetPosition;
-            if (arriveSorter)
-            {
-                state = BoxState.AtSorter;
-                if (sorter != null)
-                    sorter.OnBoxArrived(this);
-            }
-            else
-                state = BoxState.EntryWaiting;
+            transform.position = targetPosition;
+            FinishMoveToTarget();
         }
         else
         {
@@ -183,11 +149,23 @@ public class BoxController : MonoBehaviour
         }
     }
 
+    private void FinishMoveToTarget()
+    {
+        if (moveArrivesAtSorter)
+        {
+            state = BoxState.AtSorter;
+            if (sorter != null)
+                sorter.OnBoxArrived(this);
+        }
+        else
+            state = BoxState.InSlot;
+    }
+
     private float CalcSlotDuration(Vector3 target)
     {
         float dist = Vector3.Distance(transform.position, target);
         if (slotMoveSpeed <= 0.0001f)
-            return 0.15f;
+            return 0.12f;
         return dist / slotMoveSpeed;
     }
 
@@ -195,7 +173,7 @@ public class BoxController : MonoBehaviour
     {
         if (currentLane == null)
         {
-            state = BoxState.Despawning;
+            ReturnToPool();
             return;
         }
 
@@ -203,10 +181,10 @@ public class BoxController : MonoBehaviour
         Vector3 dir = target - transform.position;
         float dist = dir.magnitude;
         float step = currentLane.MoveSpeed * Time.deltaTime;
-        if (dist <= step)
+        if (step >= dist)
         {
             transform.position = target;
-            state = BoxState.Despawning;
+            ReturnToPool();
         }
         else
         {
@@ -220,7 +198,6 @@ public class BoxController : MonoBehaviour
         KillTweens();
 
         bool dropHere = false;
-
         if (lane == null)
             dropHere = true;
         else if (lane.Direction == Direction8.South)
@@ -233,10 +210,10 @@ public class BoxController : MonoBehaviour
         }
 
         currentLane = lane;
-        state = BoxState.MovingOnLane;
         transform.SetPositionAndRotation(lane.StartPosition, Quaternion.LookRotation((lane.EndPosition - lane.StartPosition).normalized, Vector3.up));
         if (visualRoot != null)
             visualRoot.localRotation = Quaternion.identity;
+        state = BoxState.MovingOnLane;
     }
 
     public void BeginDrop()
@@ -249,15 +226,14 @@ public class BoxController : MonoBehaviour
         t.localScale = baseScale;
         dropTween = t.DOScale(Vector3.zero, dropShrinkDuration).SetEase(Ease.InQuad).OnComplete(() =>
         {
-            state = BoxState.Despawning;
+            ReturnToPool();
         });
-        state = BoxState.DroppingDown;
+        state = BoxState.Dropping;
     }
 
-    private void DespawnNow()
+    private void ReturnToPool()
     {
         KillTweens();
-        state = BoxState.IdleInPool;
         sorter = null;
         currentLane = null;
         transform.rotation = Quaternion.identity;
