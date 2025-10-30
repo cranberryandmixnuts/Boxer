@@ -195,7 +195,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DragInputController
   sorter: {fileID: 998186814}
-  minTotalDistance: 5
+  minTotalDistance: 40
 --- !u!1 &81722095
 GameObject:
   m_ObjectHideFlags: 0

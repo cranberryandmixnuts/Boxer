@@ -4,6 +4,7 @@ public enum BoxState
 {
     IdleInPool,
     EntryWaiting,
+    EntrySliding,
     EntryAdvancing,
     AtSorter,
     MovingOnLane,
@@ -65,6 +66,12 @@ public class BoxController : MonoBehaviour
         state = BoxState.EntryAdvancing;
     }
 
+    public void MoveToEntrySlot(Vector3 targetPosition)
+    {
+        entryTargetPosition = targetPosition;
+        state = BoxState.EntrySliding;
+    }
+
     public void SpawnOnLane(ConveyorLane lane, BoxPayloadType type, SorterController sorterRef)
     {
         payloadType = type;
@@ -81,6 +88,9 @@ public class BoxController : MonoBehaviour
         {
             case BoxState.EntryAdvancing:
                 TickEntryAdvancing();
+                break;
+            case BoxState.EntrySliding:
+                TickEntrySliding();
                 break;
             case BoxState.MovingOnLane:
                 TickMovingOnLane();
@@ -118,6 +128,24 @@ public class BoxController : MonoBehaviour
         }
         else
             transform.position += dir * step;
+    }
+
+    private void TickEntrySliding()
+    {
+        Vector3 dir = entryTargetPosition - transform.position;
+        float dist = dir.magnitude;
+        float step = moveSpeed * Time.deltaTime;
+
+        if (dist <= step)
+        {
+            transform.position = entryTargetPosition;
+            state = BoxState.EntryWaiting;
+        }
+        else
+        {
+            dir.Normalize();
+            transform.position += dir * step;
+        }
     }
 
     private void TickMovingOnLane()

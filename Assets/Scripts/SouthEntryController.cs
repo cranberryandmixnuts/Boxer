@@ -9,44 +9,56 @@ public class SouthEntryController : MonoBehaviour
     [SerializeField]
     private SorterController sorter;
 
-    [SerializeField]
-    private int fillCount = 4;
-
-    [SerializeField]
-    private float spawnDelay = 0.2f;
-
-    private float spawnTimer;
-    private readonly List<BoxController> boxes = new List<BoxController>();
+    private readonly List<BoxController> queue = new List<BoxController>();
 
     private void Start()
-    {
-        for (int i = 0; i < fillCount; i++)
-            TrySpawnToBottom();
-    }
-
-    private void Update()
-    {
-        if (boxes.Count < fillCount)
-        {
-            spawnTimer += Time.deltaTime;
-            if (spawnTimer >= spawnDelay)
-            {
-                spawnTimer = 0f;
-                TrySpawnToBottom();
-            }
-        }
-    }
-
-    private void TrySpawnToBottom()
     {
         if (slots == null || slots.Length == 0)
             return;
 
+        int n = slots.Length;
+        for (int i = 0; i < n; i++)
+        {
+            BoxController box = BoxPool.Instance.Get();
+            BoxPayloadType type = RollPayload();
+            box.SetupForEntry(slots[i].position, sorter, type);
+            queue.Add(box);
+        }
+
+        PromoteToSorter();
+    }
+
+    public void OnSorterFreed()
+    {
+        PromoteToSorter();
+    }
+
+    private void PromoteToSorter()
+    {
+        if (queue.Count == 0)
+            return;
+
+        BoxController top = queue[0];
+        Vector3 sorterPos = sorter.transform.position;
+        top.BeginAdvanceToSorter(sorterPos);
+
+        for (int i = 1; i < queue.Count; i++)
+        {
+            BoxController b = queue[i];
+            b.MoveToEntrySlot(slots[i - 1].position);
+        }
+
+        queue.RemoveAt(0);
+        SpawnBottom();
+    }
+
+    private void SpawnBottom()
+    {
         BoxController box = BoxPool.Instance.Get();
         BoxPayloadType type = RollPayload();
-        Transform bottomSlot = slots[slots.Length - 1];
-        box.SetupForEntry(bottomSlot.position, sorter, type);
-        boxes.Add(box);
+        Transform bottom = slots[slots.Length - 1];
+        box.SetupForEntry(bottom.position, sorter, type);
+        queue.Add(box);
     }
 
     private BoxPayloadType RollPayload()
@@ -57,23 +69,5 @@ public class SouthEntryController : MonoBehaviour
 
         int shapeIndex = Random.Range(0, 7);
         return (BoxPayloadType)shapeIndex;
-    }
-
-    public void OnSorterFreed()
-    {
-        if (boxes.Count == 0)
-            return;
-
-        BoxController top = boxes[0];
-        top.BeginAdvanceToSorter(slots[0].position);
-
-        for (int i = 1; i < boxes.Count; i++)
-        {
-            BoxController b = boxes[i];
-            Vector3 target = slots[i - 1].position;
-            b.BeginAdvanceToSorter(target);
-        }
-
-        boxes.RemoveAt(0);
     }
 }
