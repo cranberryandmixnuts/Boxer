@@ -56,6 +56,9 @@ public class BoxController : MonoBehaviour
         sorter = sorterRef;
         state = BoxState.EntryWaiting;
         transform.position = position;
+        transform.rotation = Quaternion.identity;
+        if (visualRoot != null)
+            visualRoot.localRotation = Quaternion.identity;
         currentLane = null;
         dropTraveled = 0f;
     }
@@ -64,12 +67,18 @@ public class BoxController : MonoBehaviour
     {
         entryTargetPosition = targetPosition;
         state = BoxState.EntryAdvancing;
+        transform.rotation = Quaternion.identity;
+        if (visualRoot != null)
+            visualRoot.localRotation = Quaternion.identity;
     }
 
     public void MoveToEntrySlot(Vector3 targetPosition)
     {
         entryTargetPosition = targetPosition;
         state = BoxState.EntrySliding;
+        transform.rotation = Quaternion.identity;
+        if (visualRoot != null)
+            visualRoot.localRotation = Quaternion.identity;
     }
 
     public void SpawnOnLane(ConveyorLane lane, BoxPayloadType type, SorterController sorterRef)
@@ -207,6 +216,9 @@ public class BoxController : MonoBehaviour
         state = BoxState.IdleInPool;
         sorter = null;
         currentLane = null;
+        transform.rotation = Quaternion.identity;
+        if (visualRoot != null)
+            visualRoot.localRotation = Quaternion.identity;
         if (ownerPool != null)
             ownerPool.Release(this);
         else

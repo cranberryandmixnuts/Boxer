@@ -13,7 +13,7 @@ public class DragInputController : MonoBehaviour
     private GestureDirectionRecognizer recognizer;
     private bool dragging;
     private float dragStartTime;
-    private List<Vector2> points = new List<Vector2>();
+    private readonly List<Vector2> points = new();
 
     private void Awake()
     {
@@ -47,7 +47,7 @@ public class DragInputController : MonoBehaviour
             return;
 
         Vector2 p = Input.mousePosition;
-        if (points.Count == 0 || Vector2.Distance(points[points.Count - 1], p) > 2f)
+        if (points.Count == 0 || Vector2.Distance(points[^1], p) > 2f)
             points.Add(p);
     }
 
@@ -75,7 +75,7 @@ public class DragInputController : MonoBehaviour
     private Direction8 RecognizeDirection(List<Vector2> pts)
     {
         Direction8 fromTemplate = recognizer.Recognize(pts);
-        Vector2 delta = pts[pts.Count - 1] - pts[0];
+        Vector2 delta = pts[^1] - pts[0];
         if (delta.sqrMagnitude < 0.0001f)
             return fromTemplate;
 

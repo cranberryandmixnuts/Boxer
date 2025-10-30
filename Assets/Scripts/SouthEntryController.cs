@@ -9,7 +9,7 @@ public class SouthEntryController : MonoBehaviour
     [SerializeField]
     private SorterController sorter;
 
-    private readonly List<BoxController> queue = new List<BoxController>();
+    private readonly List<BoxController> queue = new();
 
     private void Start()
     {
@@ -56,7 +56,7 @@ public class SouthEntryController : MonoBehaviour
     {
         BoxController box = BoxPool.Instance.Get();
         BoxPayloadType type = RollPayload();
-        Transform bottom = slots[slots.Length - 1];
+        Transform bottom = slots[^1];
         box.SetupForEntry(bottom.position, sorter, type);
         queue.Add(box);
     }
