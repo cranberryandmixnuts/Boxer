@@ -16,8 +16,7 @@ public class SouthEntryController : MonoBehaviour
         if (slots == null || slots.Length == 0)
             return;
 
-        int n = slots.Length;
-        for (int i = 0; i < n; i++)
+        for (int i = 0; i < slots.Length; i++)
         {
             BoxController box = BoxPool.Instance.Get();
             BoxPayloadType type = RollPayload();

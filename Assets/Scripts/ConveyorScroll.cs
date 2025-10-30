@@ -6,7 +6,7 @@ public class ConveyorScroll : MonoBehaviour
     private Renderer targetRenderer;
 
     [SerializeField]
-    private Vector2 scrollSpeed = new Vector2(0f, 1f);
+    private Vector2 scrollSpeed = new(0f, 1f);
 
     private void Update()
     {

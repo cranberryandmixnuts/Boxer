@@ -47,9 +47,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BoxController
   visualRoot: {fileID: 2371603989842240269}
-  moveSpeed: 2.5
-  dropDistance: 3
-  dropSpeed: 6
+  slotMoveSpeed: 7
+  dropShrinkDuration: 0.25
+  dropZOffset: 0.1
+  entryScaleFactor: 1.13
 --- !u!33 &6001072188588861193
 MeshFilter:
   m_ObjectHideFlags: 0

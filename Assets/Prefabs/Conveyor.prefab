@@ -129,7 +129,7 @@ MonoBehaviour:
   startPoint: {fileID: 3948767932590237315}
   endPoint: {fileID: 8186519612704979929}
   isToSorter: 0
-  moveSpeed: 2.5
+  moveSpeed: 5
 --- !u!33 &2215455540969550302
 MeshFilter:
   m_ObjectHideFlags: 0

@@ -15,7 +15,7 @@ public class ConveyorLane : MonoBehaviour
     private bool isToSorter;
 
     [SerializeField]
-    private float moveSpeed = 2.5f;
+    private float moveSpeed = 5f;
 
     public Direction8 Direction
     {
