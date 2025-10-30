@@ -36,21 +36,23 @@ public class SorterController : MonoBehaviour
 
     private void Awake()
     {
-        gameController = FindObjectOfType<GameController>();
+        gameController = FindFirstObjectByType<GameController>();
         BuildRouteTable();
     }
 
     private void BuildRouteTable()
     {
-        routeTable = new Dictionary<BoxPayloadType, Direction8>();
-        routeTable[BoxPayloadType.Shape1] = Direction8.SouthWest;
-        routeTable[BoxPayloadType.Shape2] = Direction8.West;
-        routeTable[BoxPayloadType.Shape3] = Direction8.NorthWest;
-        routeTable[BoxPayloadType.Shape4] = Direction8.North;
-        routeTable[BoxPayloadType.Shape5] = Direction8.NorthEast;
-        routeTable[BoxPayloadType.Shape6] = Direction8.East;
-        routeTable[BoxPayloadType.Shape7] = Direction8.SouthEast;
-        routeTable[BoxPayloadType.Bomb] = Direction8.South;
+        routeTable = new Dictionary<BoxPayloadType, Direction8>
+        {
+            [BoxPayloadType.Shape1] = Direction8.SouthWest,
+            [BoxPayloadType.Shape2] = Direction8.West,
+            [BoxPayloadType.Shape3] = Direction8.NorthWest,
+            [BoxPayloadType.Shape4] = Direction8.North,
+            [BoxPayloadType.Shape5] = Direction8.NorthEast,
+            [BoxPayloadType.Shape6] = Direction8.East,
+            [BoxPayloadType.Shape7] = Direction8.SouthEast,
+            [BoxPayloadType.Bomb] = Direction8.South
+        };
     }
 
     public void OnBoxArrived(BoxController box)
@@ -106,6 +108,8 @@ public class SorterController : MonoBehaviour
                 return eastLane;
             case Direction8.SouthEast:
                 return southEastLane;
+            default:
+                break;
         }
 
         return southLane;
