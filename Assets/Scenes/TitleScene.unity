@@ -162,6 +162,7 @@ MonoBehaviour:
   spinRandomAngleMax: 800
   spinDuration: 0.7
   settleDuration: 0.6
+  fadeDuration: 0.9
 --- !u!4 &2898247
 Transform:
   m_ObjectHideFlags: 0
@@ -307,7 +308,7 @@ RectTransform:
   m_GameObject: {fileID: 303380328}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 749924668}

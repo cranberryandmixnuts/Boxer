@@ -18,7 +18,7 @@ public sealed class GameController : MonoBehaviour
     private float timeLimit = 60f;
 
     [SerializeField]
-    private int requiredClearCount = 20;
+    private int requiredClearCount = 140;
 
     [SerializeField]
     private int successSceneNumber = 2;
@@ -27,7 +27,16 @@ public sealed class GameController : MonoBehaviour
     private int failSceneNumber = 3;
 
     [SerializeField]
+    private GameObject inputObject;
+
+    [SerializeField]
     private GameObject[] hpObjects;
+
+    [SerializeField]
+    private GameObject hpRoot;
+
+    [SerializeField]
+    private GameObject timerRoot;
 
     [SerializeField]
     private Text minuteText;
@@ -41,10 +50,20 @@ public sealed class GameController : MonoBehaviour
     [SerializeField]
     private Text remainingBoxText;
 
+    [SerializeField]
+    private GameObject fadeImageObject;
+
+    [SerializeField]
+    private float fadeDuration = 0.9f;
+
+    [SerializeField]
+    private GameObject tutorialObject;
+
     private int currentHp;
     private int clearedCount;
     private float remainingTime;
     private bool gameEnded;
+    private bool timerStarted;
     private Tween remainingBoxTween;
 
     private void Start()
@@ -53,15 +72,20 @@ public sealed class GameController : MonoBehaviour
         clearedCount = 0;
         remainingTime = timeLimit;
         gameEnded = false;
+        timerStarted = false;
+
         UpdateHpUI();
         UpdateTimerUI();
         UpdateRemainingBoxUI();
-        UpdateUI();
+        PlayFadeOut();
     }
 
     private void Update()
     {
-        if (gameEnded)
+        if (!gameEnded && !timerStarted)
+            CheckStartInput();
+
+        if (gameEnded || !timerStarted)
             return;
 
         remainingTime -= Time.deltaTime;
@@ -76,7 +100,7 @@ public sealed class GameController : MonoBehaviour
 
     public void ResolveRouting(bool isCorrect)
     {
-        if (gameEnded)
+        if (gameEnded || !timerStarted)
             return;
 
         if (isCorrect)
@@ -96,8 +120,35 @@ public sealed class GameController : MonoBehaviour
 
             cameraHover.PlayFailShake();
         }
+    }
 
-        UpdateUI();
+    private void CheckStartInput()
+    {
+        if (!Input.GetMouseButtonDown(0))
+            return;
+
+        timerStarted = true;
+
+        if (tutorialObject != null)
+            tutorialObject.SetActive(false);
+        fadeImageObject.SetActive(false);
+    }
+
+    private void PlayFadeOut()
+    {
+        if (fadeImageObject == null)
+            return;
+
+        CanvasGroup canvasGroup = fadeImageObject.GetComponent<CanvasGroup>();
+        if (canvasGroup == null)
+            return;
+
+        fadeImageObject.SetActive(true);
+        canvasGroup.alpha = 1f;
+
+        canvasGroup
+            .DOFade(0f, fadeDuration)
+            .SetEase(Ease.Linear);
     }
 
     private void ApplyHpPenalty(int amount)
@@ -110,14 +161,19 @@ public sealed class GameController : MonoBehaviour
         if (currentHp < 0)
             currentHp = 0;
 
-        if (currentHp < oldHp)
-        {
-            for (int i = currentHp; i < oldHp; i++)
-                PlayHpLossAnimation(i);
-        }
-
         if (currentHp <= 0)
-            OnGameOver();
+        {
+            currentHp = 0;
+            OnGameOverByHp();
+        }
+        else
+        {
+            if (currentHp < oldHp)
+            {
+                for (int i = currentHp; i < oldHp; i++)
+                    PlayHpLossAnimation(i);
+            }
+        }
     }
 
     private void OnTimeUp()
@@ -128,7 +184,7 @@ public sealed class GameController : MonoBehaviour
         if (clearedCount >= requiredClearCount)
             OnGameClear();
         else
-            OnGameOver();
+            OnGameOverByTime();
     }
 
     private void OnGameClear()
@@ -137,25 +193,87 @@ public sealed class GameController : MonoBehaviour
             return;
 
         gameEnded = true;
-        SceneManager.LoadScene(successSceneNumber);
+
+        if (inputObject != null)
+            inputObject.SetActive(false);
+
+        GameObject target = remainingBoxText != null ? remainingBoxText.gameObject : null;
+        BlinkAndLoadScene(target, successSceneNumber);
     }
 
-    private void OnGameOver()
+    private void OnGameOverByHp()
     {
         if (gameEnded)
             return;
 
         gameEnded = true;
-        SceneManager.LoadScene(failSceneNumber);
+
+        if (inputObject != null)
+            inputObject.SetActive(false);
+
+        ShowAllHpForBlink();
+
+        GameObject target = hpRoot != null ? hpRoot : null;
+        if (target == null && hpObjects != null && hpObjects.Length > 0 && hpObjects[0] != null)
+            target = hpObjects[0].transform.parent.gameObject;
+
+        BlinkAndLoadScene(target, failSceneNumber);
     }
 
-    private void UpdateUI()
+    private void OnGameOverByTime()
     {
-        Debug.Log(
-            "HP: " + currentHp +
-            " Cleared: " + clearedCount + "/" + requiredClearCount +
-            " Time: " + remainingTime.ToString("F1")
-        );
+        if (gameEnded)
+            return;
+
+        gameEnded = true;
+
+        if (inputObject != null)
+            inputObject.SetActive(false);
+
+        GameObject target = timerRoot != null ? timerRoot : null;
+        if (target == null && minuteText != null)
+            target = minuteText.transform.parent.gameObject;
+
+        BlinkAndLoadScene(target, failSceneNumber);
+    }
+
+    private void BlinkAndLoadScene(GameObject target, int sceneIndex)
+    {
+
+        target.SetActive(true);
+
+        float interval = 0.5f;
+        Sequence seq = DOTween.Sequence();
+
+        for (int i = 0; i < 3; i++)
+        {
+            seq.AppendCallback(() => target.SetActive(true));
+            seq.AppendInterval(interval);
+            seq.AppendCallback(() => target.SetActive(false));
+            seq.AppendInterval(interval);
+        }
+
+        seq.OnComplete(() => SceneManager.LoadScene(sceneIndex));
+    }
+
+    private void ShowAllHpForBlink()
+    {
+        for (int i = 0; i < hpObjects.Length; i++)
+        {
+            GameObject obj = hpObjects[i];
+            if (obj == null)
+                continue;
+
+            obj.SetActive(true);
+
+            Image img = obj.GetComponent<Image>();
+            if (img != null)
+            {
+                Color c = img.color;
+                c.a = 1f;
+                img.color = c;
+            }
+        }
     }
 
     private void UpdateHpUI()
@@ -176,19 +294,26 @@ public sealed class GameController : MonoBehaviour
                 t.localScale = scale;
 
                 Image img = obj.GetComponent<Image>();
-                Color c = img.color;
-                c.a = 1f;
-                img.color = c;
+                if (img != null)
+                {
+                    Color c = img.color;
+                    c.a = 1f;
+                    img.color = c;
+                }
             }
         }
     }
 
     private void PlayHpLossAnimation(int index)
     {
+        if (hpObjects == null)
+            return;
         if (index < 0 || index >= hpObjects.Length)
             return;
 
         GameObject obj = hpObjects[index];
+        if (obj == null)
+            return;
         if (!obj.activeSelf)
             return;
 
@@ -197,20 +322,25 @@ public sealed class GameController : MonoBehaviour
 
         Image img = obj.GetComponent<Image>();
         Color baseColor = Color.white;
-        baseColor = img.color;
+        if (img != null)
+            baseColor = img.color;
 
         float duration = 0.25f;
         float scaleFactor = 1.3f;
 
         Sequence seq = DOTween.Sequence();
         seq.Append(t.DOScale(baseScale * scaleFactor, duration));
-        seq.Join(img.DOFade(0f, duration));
-        seq.OnComplete(() =>
-        {
-            t.localScale = baseScale;
-            img.color = baseColor;
-            obj.SetActive(false);
-        });
+        if (img != null)
+            seq.Join(img.DOFade(0f, duration));
+        seq.OnComplete(
+            () =>
+            {
+                t.localScale = baseScale;
+                if (img != null)
+                    img.color = baseColor;
+                obj.SetActive(false);
+            }
+        );
     }
 
     private void UpdateTimerUI()
@@ -220,24 +350,31 @@ public sealed class GameController : MonoBehaviour
         int seconds = (totalMilliseconds / 1000) % 60;
         int centiseconds = (totalMilliseconds / 10) % 100;
 
+        if (minuteText != null)
+            minuteText.text = minutes.ToString("00");
 
-        minuteText.text = minutes.ToString("00");
+        if (secondText != null)
+            secondText.text = seconds.ToString("00");
 
-        secondText.text = seconds.ToString("00");
-
-        centisecondText.text = centiseconds.ToString("00");
+        if (centisecondText != null)
+            centisecondText.text = centiseconds.ToString("00");
     }
 
     private void UpdateRemainingBoxUI()
     {
+        if (remainingBoxText == null)
+            return;
 
         int remaining = Mathf.Max(0, requiredClearCount - clearedCount);
         remainingBoxText.text = "할당량까지: " + remaining + "개 남음";
+
         PlayRemainingBoxTween();
     }
 
     private void PlayRemainingBoxTween()
     {
+        if (remainingBoxText == null)
+            return;
 
         Transform t = remainingBoxText.transform;
 
