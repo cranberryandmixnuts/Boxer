@@ -6,7 +6,7 @@ public class GameController : MonoBehaviour
     private CameraHoverMotion cameraHover;
 
     [SerializeField]
-    private int maxHp = 5;
+    private int maxHp = 3;
 
     [SerializeField]
     private float slowDragThreshold = 0.6f;
@@ -29,7 +29,7 @@ public class GameController : MonoBehaviour
         score = 0;
     }
 
-    public void ResolveRouting(bool isCorrect, BoxController box, float dragTime)
+    public void ResolveRouting(bool isCorrect, float dragTime)
     {
         if (dragTime > slowDragThreshold)
             ApplyHpPenalty(hpPenaltySlow);

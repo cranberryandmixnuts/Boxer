@@ -46,10 +46,7 @@ public class BoxController : MonoBehaviour
 
     private void Awake()
     {
-        if (visualRoot != null)
-            baseScale = visualRoot.localScale;
-        else
-            baseScale = transform.localScale;
+        baseScale = visualRoot.localScale;
     }
 
     public BoxPayloadType PayloadType
@@ -75,8 +72,7 @@ public class BoxController : MonoBehaviour
         sorter = sorterRef;
         currentLane = null;
         transform.SetPositionAndRotation(position, Quaternion.identity);
-        if (visualRoot != null)
-            visualRoot.localRotation = Quaternion.identity;
+        visualRoot.localRotation = Quaternion.identity;
         ResetScale();
         state = BoxState.InSlot;
         UpdateDirectionIndicator();
@@ -98,8 +94,7 @@ public class BoxController : MonoBehaviour
         targetPosition = pos;
         moveArrivesAtSorter = arrivesAtSorter;
         transform.rotation = Quaternion.identity;
-        if (visualRoot != null)
-            visualRoot.localRotation = Quaternion.identity;
+        visualRoot.localRotation = Quaternion.identity;
         PlayEntryHop(CalcSlotDuration(pos));
         state = BoxState.MovingToTarget;
     }
@@ -107,12 +102,12 @@ public class BoxController : MonoBehaviour
     public void SpawnOnLane(ConveyorLane lane, BoxPayloadType type, SorterController sorterRef)
     {
         KillTweens();
+        ResetDirectionIndicator();
         payloadType = type;
         sorter = sorterRef;
         currentLane = lane;
         transform.SetPositionAndRotation(lane.StartPosition, Quaternion.LookRotation((lane.EndPosition - lane.StartPosition).normalized, Vector3.up));
-        if (visualRoot != null)
-            visualRoot.localRotation = Quaternion.identity;
+        visualRoot.localRotation = Quaternion.identity;
         state = BoxState.MovingOnLane;
     }
 
@@ -161,8 +156,7 @@ public class BoxController : MonoBehaviour
         if (moveArrivesAtSorter)
         {
             state = BoxState.AtSorter;
-            if (sorter != null)
-                sorter.OnBoxArrived(this);
+            sorter.OnBoxArrived(this);
         }
         else
             state = BoxState.InSlot;
@@ -202,64 +196,45 @@ public class BoxController : MonoBehaviour
 
     private void UpdateDirectionIndicator()
     {
-        Direction8 direction = Direction8.South;
-
-        if (sorter != null)
-            direction = sorter.GetExpectedDirection(payloadType);
-
+        Direction8 direction = sorter.GetExpectedDirection(payloadType);
         bool isSouth = direction == Direction8.South;
 
-        if (arrowObject != null)
-        {
-            arrowObject.SetActive(!isSouth);
+        arrowObject.SetActive(!isSouth);
 
-            if (!isSouth)
-            {
-                float yAngle = GetYRotationForDirection(direction);
-                Transform t = arrowObject.transform;
-                Vector3 euler = t.localEulerAngles;
-                euler.y = yAngle;
-                t.localEulerAngles = euler;
-            }
+        if (!isSouth)
+        {
+            float yAngle = GetYRotationForDirection(direction);
+            Transform t = arrowObject.transform;
+            Vector3 euler = t.localEulerAngles;
+            euler.y = yAngle;
+            t.localEulerAngles = euler;
         }
 
-        if (xObject != null)
-            xObject.SetActive(isSouth);
+        xObject.SetActive(isSouth);
     }
 
     private float GetYRotationForDirection(Direction8 direction)
     {
-        switch (direction)
+        return direction switch
         {
-            case Direction8.South:
-                return 0f;
-            case Direction8.SouthEast:
-                return 45f;
-            case Direction8.East:
-                return 90f;
-            case Direction8.NorthEast:
-                return 135f;
-            case Direction8.North:
-                return 180f;
-            case Direction8.NorthWest:
-                return 225f;
-            case Direction8.West:
-                return 270f;
-            case Direction8.SouthWest:
-                return 315f;
-        }
-
-        return 0f;
+            Direction8.SouthEast => 45f,
+            Direction8.East => 90f,
+            Direction8.NorthEast => 135f,
+            Direction8.North => 180f,
+            Direction8.NorthWest => 225f,
+            Direction8.West => 270f,
+            Direction8.SouthWest => 315f,
+            _ => 0f,
+        };
     }
 
     public void RouteToLane(ConveyorLane lane)
     {
         KillTweens();
+        ResetDirectionIndicator();
 
         bool dropHere = false;
-        if (lane == null)
-            dropHere = true;
-        else if (lane.Direction == Direction8.South)
+        if (lane.Direction == Direction8.South)
             dropHere = true;
 
         if (dropHere)
@@ -270,18 +245,19 @@ public class BoxController : MonoBehaviour
 
         currentLane = lane;
         transform.SetPositionAndRotation(lane.StartPosition, Quaternion.LookRotation((lane.EndPosition - lane.StartPosition).normalized, Vector3.up));
-        if (visualRoot != null)
-            visualRoot.localRotation = Quaternion.identity;
+        visualRoot.localRotation = Quaternion.identity;
         state = BoxState.MovingOnLane;
     }
 
     public void BeginDrop()
     {
         KillTweens();
+        ResetDirectionIndicator();
+
         Vector3 p = transform.position;
         p.z += dropZOffset;
         transform.position = p;
-        Transform t = visualRoot != null ? visualRoot : transform;
+        Transform t = visualRoot;
         t.localScale = baseScale;
         dropTween = t.DOScale(Vector3.zero, dropShrinkDuration).SetEase(Ease.InQuad).OnComplete(() =>
         {
@@ -297,8 +273,7 @@ public class BoxController : MonoBehaviour
         currentLane = null;
         transform.rotation = Quaternion.identity;
         ResetScale();
-        if (visualRoot != null)
-            visualRoot.localRotation = Quaternion.identity;
+        visualRoot.localRotation = Quaternion.identity;
         ResetDirectionIndicator();
         if (ownerPool != null)
             ownerPool.Release(this);
@@ -308,22 +283,18 @@ public class BoxController : MonoBehaviour
 
     private void ResetDirectionIndicator()
     {
-        if (arrowObject != null)
-        {
-            arrowObject.SetActive(true);
-            Transform t = arrowObject.transform;
-            Vector3 euler = t.localEulerAngles;
-            euler.y = 0f;
-            t.localEulerAngles = euler;
-        }
+        arrowObject.SetActive(false);
+        Transform t = arrowObject.transform;
+        Vector3 euler = t.localEulerAngles;
+        euler.y = 0f;
+        t.localEulerAngles = euler;
 
-        if (xObject != null)
-            xObject.SetActive(false);
+        xObject.SetActive(false);
     }
 
     private void PlayEntryHop(float duration)
     {
-        Transform t = visualRoot != null ? visualRoot : transform;
+        Transform t = visualRoot;
         t.localScale = baseScale;
         if (duration <= 0f)
             duration = 0.1f;
@@ -342,9 +313,6 @@ public class BoxController : MonoBehaviour
 
     private void ResetScale()
     {
-        if (visualRoot != null)
-            visualRoot.localScale = baseScale;
-        else
-            transform.localScale = baseScale;
+        visualRoot.localScale = baseScale;
     }
 }

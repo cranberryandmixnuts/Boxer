@@ -69,7 +69,7 @@ public class SorterController : MonoBehaviour
         ConveyorLane lane = GetLaneByDirection(direction);
 
         if (gameController != null)
-            gameController.ResolveRouting(isCorrect, currentBox, dragTime);
+            gameController.ResolveRouting(isCorrect, dragTime);
 
         currentBox.RouteToLane(lane);
         currentBox = null;
