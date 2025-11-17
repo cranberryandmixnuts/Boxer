@@ -58,8 +58,6 @@ public class SorterController : MonoBehaviour
     public void OnBoxArrived(BoxController box)
     {
         currentBox = box;
-        if (gameController != null)
-            gameController.NotifyBoxReady(box);
     }
 
     public void RouteCurrentBox(Direction8 direction, float dragTime)
@@ -113,5 +111,16 @@ public class SorterController : MonoBehaviour
         }
 
         return southLane;
+    }
+
+    public Direction8 GetExpectedDirection(BoxPayloadType type)
+    {
+        if (routeTable == null)
+            BuildRouteTable();
+
+        if (routeTable.TryGetValue(type, out Direction8 direction))
+            return direction;
+
+        return Direction8.South;
     }
 }

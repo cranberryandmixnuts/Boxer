@@ -3,6 +3,9 @@ using UnityEngine;
 public class GameController : MonoBehaviour
 {
     [SerializeField]
+    private CameraHoverMotion cameraHover;
+
+    [SerializeField]
     private int maxHp = 5;
 
     [SerializeField]
@@ -26,21 +29,23 @@ public class GameController : MonoBehaviour
         score = 0;
     }
 
-    public void NotifyBoxReady(BoxController box)
-    {
-    }
-
     public void ResolveRouting(bool isCorrect, BoxController box, float dragTime)
     {
-        bool slow = dragTime > slowDragThreshold;
+        if (dragTime > slowDragThreshold)
+            ApplyHpPenalty(hpPenaltySlow);
 
         if (isCorrect)
+        {
             score += scorePerBox;
+            if (cameraHover != null)
+                cameraHover.PlaySuccessKick();
+        }
         else
+        {
             ApplyHpPenalty(hpPenaltyWrong);
-
-        if (slow)
-            ApplyHpPenalty(hpPenaltySlow);
+            if (cameraHover != null)
+                cameraHover.PlayFailShake();
+        }
 
         UpdateUI();
     }
