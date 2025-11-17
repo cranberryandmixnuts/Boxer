@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class DragRotate : MonoBehaviour
+public class StartButton : MonoBehaviour
 {
     public Camera targetCamera;
 

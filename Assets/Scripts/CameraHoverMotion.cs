@@ -86,7 +86,7 @@ public sealed class CameraHoverMotion : MonoBehaviour
             float t = 1f - (successKickTimer / successKickDuration);
             t = Mathf.Clamp01(t);
             float kick = Mathf.Sin(t * Mathf.PI);
-            effectPositionOffset += Vector3.back * kick * successKickDistance;
+            effectPositionOffset += kick * successKickDistance * Vector3.back;
         }
 
         if (failShakeTimer > 0f && failShakeDuration > 0f)
