@@ -11,6 +11,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/GameScene.unity
     guid: 99c9720ab356a0642a771bea13969a05
+  - enabled: 1
+    path: Assets/Scenes/SuccessScene.unity
+    guid: 7f12544e7c1e8b446a73cee4af1d3080
+  - enabled: 1
+    path: Assets/Scenes/FailScene.unity
+    guid: f984cdfb4056da04b9a7d97f845e870d
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0

@@ -60,7 +60,7 @@ public class SorterController : MonoBehaviour
         currentBox = box;
     }
 
-    public void RouteCurrentBox(Direction8 direction, float dragTime)
+    public void RouteCurrentBox(Direction8 direction)
     {
         if (currentBox == null)
             return;
@@ -69,7 +69,7 @@ public class SorterController : MonoBehaviour
         ConveyorLane lane = GetLaneByDirection(direction);
 
         if (gameController != null)
-            gameController.ResolveRouting(isCorrect, dragTime);
+            gameController.ResolveRouting(isCorrect);
 
         currentBox.RouteToLane(lane);
         currentBox = null;

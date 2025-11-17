@@ -15,14 +15,12 @@ public class StartButton : MonoBehaviour
     public GameObject closedBoxObject;
     public GameObject openBoxObject;
     public GameObject fadeImageObject;
-    public Transform fadeImageTransform;
-    public Vector3 fadeTargetScale;
-    public float fadeScaleDuration = 1.5f;
 
     public float spinRandomAngleMin = 400f;
     public float spinRandomAngleMax = 800f;
     public float spinDuration = 0.7f;
     public float settleDuration = 0.6f;
+    public float fadeDuration = 0.9f;
 
     private bool isDragging;
     private bool isAnimating;
@@ -36,8 +34,6 @@ public class StartButton : MonoBehaviour
     private void Awake()
     {
         targetCamera = Camera.main;
-
-        fadeImageTransform = fadeImageObject.transform;
     }
 
     private void OnMouseDown()
@@ -170,12 +166,13 @@ public class StartButton : MonoBehaviour
         closedBoxObject.SetActive(false);
         openBoxObject.SetActive(true);
         fadeImageObject.SetActive(true);
-        fadeImageTransform = fadeImageObject.transform;
 
-        fadeImageTransform.localScale = Vector3.zero;
-        fadeImageTransform
-            .DOScale(fadeTargetScale, fadeScaleDuration)
-            .SetDelay(0.3f)
+        CanvasGroup canvasGroup = fadeImageObject.GetComponent<CanvasGroup>();
+
+        canvasGroup.alpha = 0f;
+
+        canvasGroup
+            .DOFade(1f, fadeDuration)
             .SetEase(Ease.Linear)
             .OnComplete(() => SceneManager.LoadScene(1));
     }

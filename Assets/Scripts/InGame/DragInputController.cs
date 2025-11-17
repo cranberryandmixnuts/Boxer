@@ -12,8 +12,7 @@ public class DragInputController : MonoBehaviour
 
     private AdvancedGestureRecognizer recognizer;
     private bool dragging;
-    private float dragStartTime;
-    private readonly List<Vector2> points = new List<Vector2>();
+    private readonly List<Vector2> points = new();
 
     private void Awake()
     {
@@ -36,7 +35,6 @@ public class DragInputController : MonoBehaviour
             return;
 
         dragging = true;
-        dragStartTime = Time.time;
         points.Clear();
         points.Add(Input.mousePosition);
     }
@@ -64,10 +62,8 @@ public class DragInputController : MonoBehaviour
         if (totalDist < minTotalDistance)
             return;
 
-        float dragTime = Time.time - dragStartTime;
-
         List<GestureMatch> matches = recognizer.RecognizeAll(points);
-        Direction8 vecDir = ScreenDeltaToDirection(points[0], points[points.Count - 1]);
+        Direction8 vecDir = ScreenDeltaToDirection(points[0], points[^1]);
 
         if (matches.Count == 0)
             return;
@@ -91,7 +87,7 @@ public class DragInputController : MonoBehaviour
         log += " | vec=" + vecDir + " final=" + finalDir;
         Debug.Log(log);
 
-        sorter.RouteCurrentBox(finalDir, dragTime);
+        sorter.RouteCurrentBox(finalDir);
     }
 
     private float CalcVectorBonus(Direction8 vecDir, Direction8 algoDir)
@@ -117,18 +113,18 @@ public class DragInputController : MonoBehaviour
 
     private int DirToIndex(Direction8 d)
     {
-        switch (d)
+        return d switch
         {
-            case Direction8.East: return 0;
-            case Direction8.NorthEast: return 1;
-            case Direction8.North: return 2;
-            case Direction8.NorthWest: return 3;
-            case Direction8.West: return 4;
-            case Direction8.SouthWest: return 5;
-            case Direction8.South: return 6;
-            case Direction8.SouthEast: return 7;
-        }
-        return 0;
+            Direction8.East => 0,
+            Direction8.NorthEast => 1,
+            Direction8.North => 2,
+            Direction8.NorthWest => 3,
+            Direction8.West => 4,
+            Direction8.SouthWest => 5,
+            Direction8.South => 6,
+            Direction8.SouthEast => 7,
+            _ => 8,
+        };
     }
 
     private Direction8 ScreenDeltaToDirection(Vector2 from, Vector2 to)
