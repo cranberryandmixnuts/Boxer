@@ -1,8 +1,8 @@
 using UnityEngine;
 
-public sealed class CameraHoverMotion : MonoBehaviour
+public sealed class CameraHoverMotion : BaseBehaviour
 {
-    [Header("Hover ¼³Á¤")]
+    [Header("Hover ï¿½ï¿½ï¿½ï¿½")]
     [SerializeField]
     private float forwardAmplitude = 0.2f;
 
@@ -21,14 +21,14 @@ public sealed class CameraHoverMotion : MonoBehaviour
     [SerializeField]
     private float tiltSpeed = 0.1f;
 
-    [Header("Á¤´ä È¿°ú")]
+    [Header("ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½")]
     [SerializeField]
     private float successKickDistance = 0.15f;
 
     [SerializeField]
     private float successKickDuration = 0.15f;
 
-    [Header("¿À´ä È¿°ú")]
+    [Header("ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½")]
     [SerializeField]
     private float failShakeAmplitude = 0.4f;
 

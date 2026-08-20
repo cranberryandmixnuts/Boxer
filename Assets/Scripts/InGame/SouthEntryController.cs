@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SouthEntryController : MonoBehaviour
+public class SouthEntryController : BaseBehaviour
 {
     [SerializeField]
     private Transform[] slots;

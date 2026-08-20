@@ -3,7 +3,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using DG.Tweening;
 
-public class StartButton : MonoBehaviour
+public class StartButton : BaseBehaviour
 {
     public Camera targetCamera;
 

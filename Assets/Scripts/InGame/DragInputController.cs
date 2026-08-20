@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
-public class DragInputController : MonoBehaviour
+public class DragInputController : BaseBehaviour
 {
     [SerializeField]
     private SorterController sorter;

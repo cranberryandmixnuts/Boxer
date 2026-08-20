@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class ConveyorLane : MonoBehaviour
+public class ConveyorLane : BaseBehaviour
 {
     [SerializeField]
     private Direction8 direction;

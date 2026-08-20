@@ -5,7 +5,7 @@ using System.Collections;
 namespace TMPro.Examples
 {
 
-    public class ObjectSpin : MonoBehaviour
+    public class ObjectSpin : BaseBehaviour
     {
         #pragma warning disable 0414
         public enum MotionType { Rotation, SearchLight, Translation };

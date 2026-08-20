@@ -8,7 +8,7 @@ using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 namespace TMPro.Examples
 {
     
-    public class CameraController : MonoBehaviour
+    public class CameraController : BaseBehaviour
     {
         public enum CameraModes { Follow, Isometric, Free }
 

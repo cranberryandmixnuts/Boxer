@@ -10,7 +10,7 @@ public enum BoxState
     Dropping
 }
 
-public class BoxController : MonoBehaviour
+public class BoxController : BaseBehaviour
 {
     [SerializeField]
     private Transform visualRoot;

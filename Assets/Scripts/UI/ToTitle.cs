@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class ToTitle : MonoBehaviour
+public class ToTitle : BaseBehaviour
 {
     public void GoToTitle() => SceneManager.LoadScene(0);
 }

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SorterController : MonoBehaviour
+public class SorterController : BaseBehaviour
 {
     [SerializeField]
     private ConveyorLane southLane;

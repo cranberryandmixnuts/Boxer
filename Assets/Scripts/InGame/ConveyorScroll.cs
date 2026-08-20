@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class ConveyorScroll : MonoBehaviour
+public class ConveyorScroll : BaseBehaviour
 {
     [SerializeField]
     private Renderer targetRenderer;
