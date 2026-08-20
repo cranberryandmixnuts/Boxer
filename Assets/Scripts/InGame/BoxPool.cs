@@ -1,10 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BoxPool : MonoBehaviour
+public class BoxPool : SingletonBehaviour<BoxPool, SceneScope>
 {
-    public static BoxPool Instance { get; private set; }
-
     [SerializeField]
     private BoxController boxPrefab;
 
@@ -13,15 +11,8 @@ public class BoxPool : MonoBehaviour
 
     private readonly Stack<BoxController> pool = new Stack<BoxController>();
 
-    private void Awake()
+    protected override void SingletonAwake()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        Instance = this;
         for (int i = 0; i < initialCount; i++)
             CreateNew();
     }
