@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 
 public class DragInputController : MonoBehaviour
 {
@@ -21,39 +22,45 @@ public class DragInputController : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetMouseButtonDown(0))
-            BeginDrag();
-        else if (Input.GetMouseButton(0))
-            TickDrag();
-        else if (Input.GetMouseButtonUp(0))
-            EndDrag();
+        Mouse mouse = Mouse.current;
+        if (mouse == null)
+            return;
+
+        Vector2 pointerPosition = mouse.position.ReadValue();
+
+        if (mouse.leftButton.wasPressedThisFrame)
+            BeginDrag(pointerPosition);
+        else if (mouse.leftButton.isPressed)
+            TickDrag(pointerPosition);
+        else if (mouse.leftButton.wasReleasedThisFrame)
+            EndDrag(pointerPosition);
     }
 
-    private void BeginDrag()
+    private void BeginDrag(Vector2 pointerPosition)
     {
         if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
             return;
 
         dragging = true;
         points.Clear();
-        points.Add(Input.mousePosition);
+        points.Add(pointerPosition);
     }
 
-    private void TickDrag()
+    private void TickDrag(Vector2 pointerPosition)
     {
         if (!dragging)
             return;
 
-        points.Add(Input.mousePosition);
+        points.Add(pointerPosition);
     }
 
-    private void EndDrag()
+    private void EndDrag(Vector2 pointerPosition)
     {
         if (!dragging)
             return;
 
         dragging = false;
-        points.Add(Input.mousePosition);
+        points.Add(pointerPosition);
 
         float totalDist = 0f;
         for (int i = 1; i < points.Count; i++)

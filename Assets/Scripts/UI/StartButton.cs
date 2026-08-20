@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using DG.Tweening;
 
@@ -30,26 +31,28 @@ public class StartButton : MonoBehaviour
     private Vector3 inertiaVelocity;
     private Vector2 dragPixelDelta;
     private Sequence pressSequence;
+    private Collider hitCollider;
 
     private void Awake()
     {
         targetCamera = Camera.main;
+        hitCollider = GetComponent<Collider>();
     }
 
-    private void OnMouseDown()
+    private void BeginDrag(Vector2 pointerPosition)
     {
         if (isAnimating)
             return;
 
         isDragging = true;
-        lastMousePosition = Input.mousePosition;
+        lastMousePosition = pointerPosition;
         dragStartRotation = transform.rotation;
         dragTotalDelta = Vector2.zero;
         inertiaVelocity = Vector3.zero;
         dragPixelDelta = Vector2.zero;
     }
 
-    private void OnMouseUp()
+    private void EndDrag()
     {
         if (isAnimating)
             return;
@@ -72,9 +75,18 @@ public class StartButton : MonoBehaviour
         if (isAnimating)
             return;
 
-        if (isDragging && targetCamera != null)
+        Mouse mouse = Mouse.current;
+        Vector2 pointerPosition = mouse != null ? mouse.position.ReadValue() : Vector2.zero;
+
+        if (mouse != null && mouse.leftButton.wasPressedThisFrame && IsPointerOverSelf(pointerPosition))
+            BeginDrag(pointerPosition);
+
+        if (mouse != null && mouse.leftButton.wasReleasedThisFrame && isDragging)
+            EndDrag();
+
+        if (isDragging && targetCamera != null && mouse != null)
         {
-            Vector3 mousePosition = Input.mousePosition;
+            Vector3 mousePosition = pointerPosition;
             Vector3 mouseDelta = mousePosition - lastMousePosition;
             lastMousePosition = mousePosition;
 
@@ -122,6 +134,15 @@ public class StartButton : MonoBehaviour
         if (t > 1f)
             t = 1f;
         inertiaVelocity = Vector3.Lerp(inertiaVelocity, Vector3.zero, t);
+    }
+
+    private bool IsPointerOverSelf(Vector2 pointerPosition)
+    {
+        if (targetCamera == null || hitCollider == null)
+            return false;
+
+        Ray ray = targetCamera.ScreenPointToRay(pointerPosition);
+        return hitCollider.Raycast(ray, out _, Mathf.Infinity);
     }
 
     private void HandleClick()

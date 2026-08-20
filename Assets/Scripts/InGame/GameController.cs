@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using DG.Tweening;
@@ -124,7 +125,8 @@ public sealed class GameController : SingletonBehaviour<GameController, SceneSco
 
     private void CheckStartInput()
     {
-        if (!Input.GetMouseButtonDown(0))
+        Mouse mouse = Mouse.current;
+        if (mouse == null || !mouse.leftButton.wasPressedThisFrame)
             return;
 
         timerStarted = true;
@@ -366,7 +368,7 @@ public sealed class GameController : SingletonBehaviour<GameController, SceneSco
             return;
 
         int remaining = Mathf.Max(0, requiredClearCount - clearedCount);
-        remainingBoxText.text = "ÇÒ´ç·®±îÁö: " + remaining + "°³ ³²À½";
+        remainingBoxText.text = "í• ë‹¹ëŸ‰ê¹Œì§€: " + remaining + "ê°œ ë‚¨ìŒ";
 
         PlayRemainingBoxTween();
     }

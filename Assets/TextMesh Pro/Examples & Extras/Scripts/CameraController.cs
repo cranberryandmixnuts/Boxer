@@ -1,5 +1,8 @@
 using UnityEngine;
 using System.Collections;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.EnhancedTouch;
+using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 
 
 namespace TMPro.Examples
@@ -57,11 +60,18 @@ namespace TMPro.Examples
             else
                 Application.targetFrameRate = -1;
 
-            if (Application.platform == RuntimePlatform.IPhonePlayer || Application.platform == RuntimePlatform.Android)
-                Input.simulateMouseWithTouches = false;
-
             cameraTransform = transform;
             previousSmoothing = MovementSmoothing;
+        }
+
+        void OnEnable()
+        {
+            EnhancedTouchSupport.Enable();
+        }
+
+        void OnDisable()
+        {
+            EnhancedTouchSupport.Disable();
         }
 
 
@@ -126,31 +136,36 @@ namespace TMPro.Examples
         void GetPlayerInput()
         {
             moveVector = Vector3.zero;
+            Mouse mouse = Mouse.current;
+            Keyboard keyboard = Keyboard.current;
+            var touches = Touch.activeTouches;
 
             // Check Mouse Wheel Input prior to Shift Key so we can apply multiplier on Shift for Scrolling
-            mouseWheel = Input.GetAxis("Mouse ScrollWheel");
+            mouseWheel = mouse != null ? mouse.scroll.ReadValue().y / 1200f : 0f;
 
-            float touchCount = Input.touchCount;
+            int touchCount = touches.Count;
+            bool shiftPressed = keyboard != null && (keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed);
 
-            if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift) || touchCount > 0)
+            if (shiftPressed || touchCount > 0)
             {
                 mouseWheel *= 10;
 
-                if (Input.GetKeyDown(KeyCode.I))
+                if (keyboard != null && keyboard.iKey.wasPressedThisFrame)
                     CameraMode = CameraModes.Isometric;
 
-                if (Input.GetKeyDown(KeyCode.F))
+                if (keyboard != null && keyboard.fKey.wasPressedThisFrame)
                     CameraMode = CameraModes.Follow;
 
-                if (Input.GetKeyDown(KeyCode.S))
+                if (keyboard != null && keyboard.sKey.wasPressedThisFrame)
                     MovementSmoothing = !MovementSmoothing;
 
 
                 // Check for right mouse button to change camera follow and elevation angle
-                if (Input.GetMouseButton(1))
+                if (mouse != null && mouse.rightButton.isPressed)
                 {
-                    mouseY = Input.GetAxis("Mouse Y");
-                    mouseX = Input.GetAxis("Mouse X");
+                    Vector2 mouseDelta = mouse.delta.ReadValue() * 0.1f;
+                    mouseY = mouseDelta.y;
+                    mouseX = mouseDelta.x;
 
                     if (mouseY > 0.01f || mouseY < -0.01f)
                     {
@@ -170,9 +185,9 @@ namespace TMPro.Examples
                 }
 
                 // Get Input from Mobile Device
-                if (touchCount == 1 && Input.GetTouch(0).phase == TouchPhase.Moved)
+                if (touchCount == 1 && touches[0].phase == UnityEngine.InputSystem.TouchPhase.Moved)
                 {
-                    Vector2 deltaPosition = Input.GetTouch(0).deltaPosition;
+                    Vector2 deltaPosition = touches[0].delta;
 
                     // Handle elevation changes
                     if (deltaPosition.y > 0.01f || deltaPosition.y < -0.01f)
@@ -196,9 +211,9 @@ namespace TMPro.Examples
                 }
 
                 // Check for left mouse button to select a new CameraTarget or to reset Follow position
-                if (Input.GetMouseButton(0))
+                if (mouse != null && mouse.leftButton.isPressed)
                 {
-                    Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                    Ray ray = Camera.main.ScreenPointToRay(mouse.position.ReadValue());
                     RaycastHit hit;
 
                     if (Physics.Raycast(ray, out hit, 300, 1 << 10 | 1 << 11 | 1 << 12 | 1 << 14))
@@ -219,7 +234,7 @@ namespace TMPro.Examples
                 }
 
 
-                if (Input.GetMouseButton(2))
+                if (mouse != null && mouse.middleButton.isPressed)
                 {
                     if (dummyTarget == null)
                     {
@@ -242,8 +257,9 @@ namespace TMPro.Examples
                     }
 
 
-                    mouseY = Input.GetAxis("Mouse Y");
-                    mouseX = Input.GetAxis("Mouse X");
+                    Vector2 mouseDelta = mouse.delta.ReadValue() * 0.1f;
+                    mouseY = mouseDelta.y;
+                    mouseX = mouseDelta.x;
 
                     moveVector = cameraTransform.TransformDirection(mouseX, mouseY, 0);
 
@@ -256,14 +272,14 @@ namespace TMPro.Examples
             // Check Pinching to Zoom in - out on Mobile device
             if (touchCount == 2)
             {
-                Touch touch0 = Input.GetTouch(0);
-                Touch touch1 = Input.GetTouch(1);
+                Touch touch0 = touches[0];
+                Touch touch1 = touches[1];
 
-                Vector2 touch0PrevPos = touch0.position - touch0.deltaPosition;
-                Vector2 touch1PrevPos = touch1.position - touch1.deltaPosition;
+                Vector2 touch0PrevPos = touch0.screenPosition - touch0.delta;
+                Vector2 touch1PrevPos = touch1.screenPosition - touch1.delta;
 
                 float prevTouchDelta = (touch0PrevPos - touch1PrevPos).magnitude;
-                float touchDelta = (touch0.position - touch1.position).magnitude;
+                float touchDelta = (touch0.screenPosition - touch1.screenPosition).magnitude;
 
                 float zoomDelta = prevTouchDelta - touchDelta;
 
