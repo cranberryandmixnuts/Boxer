@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-[DefaultExecutionOrder(-32000)]
-[AddComponentMenu("")]
 public sealed class PoolManager : SingletonBehaviour<PoolManager, GlobalScope>
 {
     private readonly Dictionary<GameObject, ObjectPool> pools =
@@ -16,19 +14,9 @@ public sealed class PoolManager : SingletonBehaviour<PoolManager, GlobalScope>
     private bool registryInitialized;
     private bool shuttingDown;
 
-    public static new PoolManager Instance =>
-        SingletonBehaviour<PoolManager, GlobalScope>.Instance;
-
-    public static bool HasInstance =>
-        SingletonBehaviour<PoolManager, GlobalScope>.Instance != null;
-
     public int PoolCount => pools.Count;
 
-    protected override void SingletonAwake()
-    {
-        gameObject.name = "PoolManager";
-        InitializeFromRegistry();
-    }
+    protected override void SingletonAwake() => InitializeFromRegistry();
 
     internal Object Spawn(
         Object original,
