@@ -141,8 +141,7 @@ public sealed class GameController : SingletonBehaviour<GameController, SceneSco
         if (fadeImageObject == null)
             return;
 
-        CanvasGroup canvasGroup = fadeImageObject.GetComponent<CanvasGroup>();
-        if (canvasGroup == null)
+        if (!fadeImageObject.TryGetComponent<CanvasGroup>(out var canvasGroup))
             return;
 
         fadeImageObject.SetActive(true);
@@ -268,8 +267,7 @@ public sealed class GameController : SingletonBehaviour<GameController, SceneSco
 
             obj.SetActive(true);
 
-            Image img = obj.GetComponent<Image>();
-            if (img != null)
+            if (obj.TryGetComponent<Image>(out var img))
             {
                 Color c = img.color;
                 c.a = 1f;
@@ -295,8 +293,7 @@ public sealed class GameController : SingletonBehaviour<GameController, SceneSco
                 Vector3 scale = t.localScale;
                 t.localScale = scale;
 
-                Image img = obj.GetComponent<Image>();
-                if (img != null)
+                if (obj.TryGetComponent<Image>(out var img))
                 {
                     Color c = img.color;
                     c.a = 1f;

@@ -10,7 +10,7 @@ public enum BoxState
     Dropping
 }
 
-public class BoxController : BaseBehaviour, IPoolable
+public class BoxController : BaseBehaviour
 {
     [SerializeField]
     private Transform visualRoot;
@@ -44,10 +44,7 @@ public class BoxController : BaseBehaviour, IPoolable
     private Tween entryTween;
     private Tween dropTween;
 
-    private void Awake()
-    {
-        EnsureInitialized();
-    }
+    private void Awake() => EnsureInitialized();
 
     public BoxPayloadType PayloadType
     {
@@ -60,15 +57,9 @@ public class BoxController : BaseBehaviour, IPoolable
         get { return state; }
     }
 
-    public void OnSpawn()
-    {
-        ResetRuntimeState();
-    }
+    private void OnEnable() => ResetRuntimeState();
 
-    public void OnDespawn()
-    {
-        ResetRuntimeState();
-    }
+    private void OnDisable() => KillTweens();
 
     public void SetupForEntry(Vector3 position, SorterController sorterRef, BoxPayloadType type)
     {
