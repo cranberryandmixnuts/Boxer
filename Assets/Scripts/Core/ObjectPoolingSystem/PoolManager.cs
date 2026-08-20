@@ -7,48 +7,22 @@ using Object = UnityEngine.Object;
 [AddComponentMenu("")]
 public sealed class PoolManager : SingletonBehaviour<PoolManager, GlobalScope>
 {
-
     private readonly Dictionary<GameObject, ObjectPool> pools =
-        new Dictionary<GameObject, ObjectPool>();
+        new();
 
     private readonly Dictionary<string, int> containerNameCounts =
-        new Dictionary<string, int>(StringComparer.Ordinal);
+        new(StringComparer.Ordinal);
 
     private bool registryInitialized;
     private bool shuttingDown;
 
-    public static new PoolManager Instance
-    {
-        get
-        {
-            PoolManager current = SingletonBehaviour<PoolManager, GlobalScope>.Instance;
-            if (current == null)
-            {
-                CreateInstance();
-                current = SingletonBehaviour<PoolManager, GlobalScope>.Instance;
-            }
-
-            return current;
-        }
-    }
+    public static new PoolManager Instance =>
+        SingletonBehaviour<PoolManager, GlobalScope>.Instance;
 
     public static bool HasInstance =>
         SingletonBehaviour<PoolManager, GlobalScope>.Instance != null;
 
     public int PoolCount => pools.Count;
-
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-    private static void Bootstrap()
-    {
-        PoolManager manager = Instance;
-        manager.InitializeFromRegistry();
-    }
-
-    private static void CreateInstance()
-    {
-        var managerObject = new GameObject("PoolManager");
-        managerObject.AddComponent<PoolManager>();
-    }
 
     protected override void SingletonAwake()
     {
@@ -67,6 +41,7 @@ public sealed class PoolManager : SingletonBehaviour<PoolManager, GlobalScope>
 
         ObjectPool pool = sourceMarker.OwnerPool ?? GetOrCreatePool(sourceRoot, sourceMarker);
         GameObject spawnedRoot = pool.Spawn(request);
+
         try
         {
             return ResolveRequestedObject(original, sourceRoot, spawnedRoot);
@@ -75,9 +50,7 @@ public sealed class PoolManager : SingletonBehaviour<PoolManager, GlobalScope>
         {
             if (spawnedRoot != null &&
                 spawnedRoot.TryGetComponent(out PooledObject spawnedMarker))
-            {
                 pool.TryReturn(spawnedMarker);
-            }
 
             throw;
         }
@@ -94,6 +67,7 @@ public sealed class PoolManager : SingletonBehaviour<PoolManager, GlobalScope>
         var containerObject = new GameObject(finalName);
         containerObject.SetActive(false);
         containerObject.transform.SetParent(transform, false);
+
         return containerObject.transform;
     }
 
@@ -110,6 +84,7 @@ public sealed class PoolManager : SingletonBehaviour<PoolManager, GlobalScope>
         var created = new ObjectPool(this, prefab, marker);
         pools.Add(prefab, created);
         created.Prewarm(marker.InitialPoolSize);
+
         return created;
     }
 
@@ -119,6 +94,7 @@ public sealed class PoolManager : SingletonBehaviour<PoolManager, GlobalScope>
             return;
 
         registryInitialized = true;
+
         PoolRegistry registry = Resources.Load<PoolRegistry>(PoolRegistry.ResourcesPath);
         if (registry == null)
         {
@@ -132,9 +108,11 @@ public sealed class PoolManager : SingletonBehaviour<PoolManager, GlobalScope>
         }
 
         IReadOnlyList<GameObject> prefabs = registry.Prefabs;
+
         for (int i = 0; i < prefabs.Count; i++)
         {
             GameObject prefab = prefabs[i];
+
             if (prefab == null || !prefab.TryGetComponent(out PooledObject marker))
                 continue;
 
@@ -150,7 +128,7 @@ public sealed class PoolManager : SingletonBehaviour<PoolManager, GlobalScope>
         if (original is GameObject)
             return spawnedRoot;
 
-        if (!(original is Component originalComponent))
+        if (original is not Component originalComponent)
             return spawnedRoot;
 
         Type componentType = originalComponent.GetType();
@@ -168,6 +146,7 @@ public sealed class PoolManager : SingletonBehaviour<PoolManager, GlobalScope>
         }
 
         Component[] spawnedComponents = spawnedRoot.GetComponents(componentType);
+
         if (matchingIndex >= 0 && matchingIndex < spawnedComponents.Length)
             return spawnedComponents[matchingIndex];
 
@@ -179,6 +158,7 @@ public sealed class PoolManager : SingletonBehaviour<PoolManager, GlobalScope>
     protected override void SingletonOnDestroy()
     {
         shuttingDown = true;
+
         foreach (ObjectPool pool in pools.Values)
             pool.Dispose();
 

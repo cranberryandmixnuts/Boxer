@@ -10,7 +10,7 @@ public enum BoxState
     Dropping
 }
 
-public class BoxController : BaseBehaviour
+public class BoxController : BaseBehaviour, IPoolable
 {
     [SerializeField]
     private Transform visualRoot;
@@ -37,16 +37,16 @@ public class BoxController : BaseBehaviour
     private BoxState state;
     private ConveyorLane currentLane;
     private SorterController sorter;
-    private BoxPool ownerPool;
     private Vector3 targetPosition;
     private bool moveArrivesAtSorter;
     private Vector3 baseScale;
+    private bool initialized;
     private Tween entryTween;
     private Tween dropTween;
 
     private void Awake()
     {
-        baseScale = visualRoot.localScale;
+        EnsureInitialized();
     }
 
     public BoxPayloadType PayloadType
@@ -60,9 +60,14 @@ public class BoxController : BaseBehaviour
         get { return state; }
     }
 
-    public void SetPool(BoxPool pool)
+    public void OnSpawn()
     {
-        ownerPool = pool;
+        ResetRuntimeState();
+    }
+
+    public void OnDespawn()
+    {
+        ResetRuntimeState();
     }
 
     public void SetupForEntry(Vector3 position, SorterController sorterRef, BoxPayloadType type)
@@ -268,17 +273,7 @@ public class BoxController : BaseBehaviour
 
     private void ReturnToPool()
     {
-        KillTweens();
-        sorter = null;
-        currentLane = null;
-        transform.rotation = Quaternion.identity;
-        ResetScale();
-        visualRoot.localRotation = Quaternion.identity;
-        ResetDirectionIndicator();
-        if (ownerPool != null)
-            ownerPool.Release(this);
-        else
-            gameObject.SetActive(false);
+        Pool.Destroy(gameObject);
     }
 
     private void ResetDirectionIndicator()
@@ -314,5 +309,29 @@ public class BoxController : BaseBehaviour
     private void ResetScale()
     {
         visualRoot.localScale = baseScale;
+    }
+
+    private void EnsureInitialized()
+    {
+        if (initialized)
+            return;
+
+        baseScale = visualRoot.localScale;
+        initialized = true;
+    }
+
+    private void ResetRuntimeState()
+    {
+        EnsureInitialized();
+        KillTweens();
+        payloadType = default;
+        state = BoxState.InSlot;
+        currentLane = null;
+        sorter = null;
+        targetPosition = default;
+        moveArrivesAtSorter = false;
+        visualRoot.localRotation = Quaternion.identity;
+        ResetScale();
+        ResetDirectionIndicator();
     }
 }

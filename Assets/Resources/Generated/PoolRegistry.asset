@@ -12,4 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 752283781871d334796dff1861634c8a, type: 3}
   m_Name: PoolRegistry
   m_EditorClassIdentifier: Assembly-CSharp::PoolRegistry
-  prefabs: []
+  prefabs:
+  - {fileID: 2331259659692235908, guid: cb52be1be745d4641a0c9d5d4d2f02af, type: 3}

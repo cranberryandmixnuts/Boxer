@@ -99,6 +99,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8470433659142239595}
   - component: {fileID: 1217490624472402081}
+  - component: {fileID: 5338266179059920912}
   m_Layer: 0
   m_Name: Box
   m_TagString: Untagged
@@ -143,6 +144,30 @@ MonoBehaviour:
   dropShrinkDuration: 0.25
   dropZOffset: 0.1
   entryScaleFactor: 1.13
+--- !u!114 &5338266179059920912
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2331259659692235908}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6fa69fb503487c544bf69a04cefa2f38, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::PooledObject
+  maxRetainedSize: 30
+  initialPoolSize: 30
+  restoreTransformHierarchy: 1
+  restoreChildActiveStates: 1
+  restoreGameObjectLayers: 1
+  resetRigidbodies: 1
+  resetAnimators: 1
+  restoreColliderStates: 1
+  restoreRendererStates: 1
+  clearTrailRenderers: 1
+  clearParticleSystems: 1
+  stopAudioSources: 1
 --- !u!1 &7613575962349294404
 GameObject:
   m_ObjectHideFlags: 0
