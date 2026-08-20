@@ -3,7 +3,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using DG.Tweening;
 
-public sealed class GameController : MonoBehaviour
+public sealed class GameController : SingletonBehaviour<GameController, SceneScope>
 {
     [SerializeField]
     private CameraHoverMotion cameraHover;

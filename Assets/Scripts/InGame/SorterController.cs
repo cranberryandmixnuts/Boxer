@@ -36,7 +36,7 @@ public class SorterController : MonoBehaviour
 
     private void Awake()
     {
-        gameController = FindFirstObjectByType<GameController>();
+        gameController = GameController.Instance;
         BuildRouteTable();
     }
 
