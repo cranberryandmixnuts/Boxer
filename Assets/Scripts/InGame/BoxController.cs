@@ -264,7 +264,7 @@ public class BoxController : BaseBehaviour
 
     private void ReturnToPool()
     {
-        Pool.Destroy(gameObject);
+        Destroy(gameObject);
     }
 
     private void ResetDirectionIndicator()

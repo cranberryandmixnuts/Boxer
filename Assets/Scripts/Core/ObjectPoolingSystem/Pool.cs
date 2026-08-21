@@ -116,10 +116,7 @@ public static class Pool
         return Object.Instantiate(original, position, rotation, parent);
     }
 
-    public static void Destroy(Object target)
-    {
-        Destroy(target, 0f);
-    }
+    public static void Destroy(Object target) => Destroy(target, 0f);
 
     public static void Destroy(Object target, float delay)
     {

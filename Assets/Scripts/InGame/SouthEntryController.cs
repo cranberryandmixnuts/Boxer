@@ -21,7 +21,7 @@ public class SouthEntryController : BaseBehaviour
 
         for (int i = 0; i < slots.Length; i++)
         {
-            BoxController box = Pool.Instantiate(boxPrefab);
+            BoxController box = Instantiate(boxPrefab);
             BoxPayloadType type = RollPayload();
             box.SetupForEntry(slots[i].position, sorter, type);
             queue.Add(box);
@@ -56,7 +56,7 @@ public class SouthEntryController : BaseBehaviour
 
     private void SpawnBottom()
     {
-        BoxController box = Pool.Instantiate(boxPrefab);
+        BoxController box = Instantiate(boxPrefab);
         BoxPayloadType type = RollPayload();
         Transform bottom = slots[^1];
         box.SetupForEntry(bottom.position, sorter, type);
